@@ -1,6 +1,6 @@
 import datetime
 import re
-
+from src.gps_locator.utils import save_data_remote
 from src.gps_locator.exceptions import CheckSumErrorException
 import time
 
@@ -29,6 +29,10 @@ class Gps:
             'alt': 9
         }
 
+    def parse_raw_data(self):
+        Gps.calc_checksum(self.raw)
+        self.parsed_data = self.raw.split(',')
+
     def convert_coordinates(self):
         lat = self.parsed_data[self.parsing_structure['lat']]
         lat_heading = self.parsed_data[self.parsing_structure['lat_heading']]
@@ -48,9 +52,9 @@ class Gps:
         print(self.lat)
 
     def convert_alt(self) -> None:
-        self.alt = self.parsed_data[self.parsing_structure['alt']]
-        if self.alt == 0:
-            self.alt = 10
+        self.alt = float(self.parsed_data[self.parsing_structure['alt']])
+        if self.alt == 0.0:
+            self.alt = 10.0
 
     def convert_time(self) -> None:
         raw_time = self.parsed_data[self.parsing_structure['time']]
@@ -65,24 +69,20 @@ class Gps:
             tzinfo=datetime.timezone.utc
         )
 
+    def send_data(self) -> bool:
+        return save_data_remote(
+            lat=self.lat,
+            lon=self.lon
+        )
+
     @classmethod
-    def calc_checksum(cls, raw: str) -> bool:
+    def calc_checksum(cls, raw: str,if_timeout=False) -> bool:
+        if if_timeout:
+            time.sleep(3)
         calc_checksum = 0
-        current_checksum = hex(int(raw[len(raw) - 3:-1], 16))
-        for i in raw[1:-6]:
+        current_checksum = hex(int(raw[len(raw) - 2:], 16))
+        for i in raw[1:-5]:
             calc_checksum = calc_checksum ^ ord(i)
         if current_checksum == hex(calc_checksum):
             return True
-        return False
-
-    def parse_data(self):
-        try:
-            Gps.calc_checksum(self.raw)
-            self.parsed_data = self.raw.split(',')
-            self.convert_coordinates()
-            self.convert_alt()
-            self.convert_time()
-        except CheckSumErrorException as e:
-            print(e)
-        except Exception as e:
-            print(e)
+        raise CheckSumErrorException('checksum error')

@@ -11,7 +11,7 @@ TODO_TEXT = [
 def test_to_do_app(page: Page, playwright):
     url = 'https://todomvc.com/examples/angular2/'
     chromium = playwright.chromium
-    browser = chromium.launch(headless=False)
+    browser = chromium.launch(headless=True)
     page = browser.new_page()
     page.set_viewport_size({"width": 1920, "height": 1080})
     page.goto(url)

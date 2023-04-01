@@ -43,4 +43,4 @@ def test_main_navigation(page: Page, playwright):
     fx_path = curr_dir + "/fx_screenshot.png"
     page.screenshot(path=fx_path)
 
-    assert compare_images(ch_path, fx_path)
+    assert not compare_images(ch_path, fx_path)

@@ -26,4 +26,5 @@ To execute and run the tests follow the next steps
 
 ### E2E tests
 1. Enter to folder `cd e2e_testing`
-2. run `tox -e app` to execute class based tests
+2. run `tox -e screen` to execute screen compare test
+3. run `tox -e app` to execute to do app E2E
